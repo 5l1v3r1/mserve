@@ -52,6 +52,8 @@ def download(album_id):
     fname = os.path.join(app.config['ZIP_DIR'], tmp)
     zip = zipfile.ZipFile(fname, 'w')
     for path in st.get_files(album_id):
+        # last = hexlify(urandom(2)).decode('ascii')
+        # zip.write(path, arcname=os.path.join(tmp, os.path.basename(last + ' ' + path)))
         zip.write(path)
     zip.close()
 
