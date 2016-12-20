@@ -14,26 +14,26 @@ class Storage(object):
 
 
     def ls_auth(self):
-        list(self.conn.cursor().execute('select * from auth'))
+        return list(self.conn.cursor().execute('select * from auth'))
 
 
     def mk_auth(self, password):
-        self.conn.cursor().execute('insert into auth (password) values ("{}")'.format(password))
+        self.conn.cursor().execute('insert into auth (password) values (?)', (password,))
         self.conn.commit()
 
 
     def rm_auth(self, id):
-        self.conn.cursor().execute('delete from auth where id = {}'.format(id))
+        self.conn.cursor().execute('delete from auth where id = ?', (id,))
         self.conn.commit()
 
 
     def redeem_auth(self, password):
         c = self.conn.cursor()
-        it = c.execute('select id from auth where password = "{}"'.format(password))
+        it = c.execute('select id from auth where password = ? and key is null', (password,))
         try:
             (id,) = next(it)
             key = hexlify(urandom(8)).decode('ascii')
-            c.execute('update auth set key = ("{}") where id = {}'.format(key, id))
+            c.execute('update auth set key = ? where id = ?', (key, id))
             self.conn.commit()
             return key
         except StopIteration:
@@ -42,7 +42,7 @@ class Storage(object):
 
     def check_auth(self, key):
         c = self.conn.cursor()
-        it = c.execute('select id from auth where key = "{}"'.format(key))
+        it = c.execute('select id from auth where key = ?', (key,))
         try:
             next(it)
             return True
