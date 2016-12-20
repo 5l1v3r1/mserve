@@ -1,0 +1,25 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>mserve - search results</title>
+    </head>
+    <body>
+        choose an album to download:
+        <table>
+            <thead>
+                <tr>
+                    <td>artist</td>
+                    <td>album</td>
+                </tr>
+            </thead>
+            <tbody>
+                {% for id, title, artist in albums %}
+                    <tr>
+                        <td>{{ artist }}</td>
+                        <td><a href="/download/{{ id }}">{{ title }}</a></td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </body>
+</html>
