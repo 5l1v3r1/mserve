@@ -1,6 +1,9 @@
-from flask import Flask, request, redirect, render_template, make_response
+from flask import Flask, request, redirect, render_template, make_response, send_file, after_this_request
 
+import tempfile
+import zipfile
 from os import urandom
+import os.path
 from binascii import hexlify
 from hashlib import sha256
 
@@ -39,12 +42,25 @@ def search():
         return render_template('search_results.jinja2', albums=albums)
 
 
-@app.route('/download/<album_id>', methods=['GET'])
+@app.route('/download/<int:album_id>', methods=['GET'])
 def download(album_id):
     st = get_st()
     if 'auth' not in request.cookies or not st.check_auth(request.cookies['auth']):
         return redirect("/")
-    pass
+    name = st.get_album_desc(album_id)
+    tmp = name + ' ' + hexlify(urandom(4)).decode('ascii') + '.zip'
+    fname = os.path.join(app.config['ZIP_DIR'], tmp)
+    zip = zipfile.ZipFile(fname, 'w')
+    for path in st.get_files(album_id):
+        zip.write(path)
+    zip.close()
+
+    @after_this_request
+    def cleanup(response):
+        os.remove(fname)
+        return response
+
+    return send_file(fname, attachment_filename=tmp, as_attachment=True)
 
 
 def check_admin_auth():

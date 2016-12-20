@@ -1,12 +1,16 @@
-from os import urandom
+import sys
+import os
+import os.path
+import re
 from binascii import hexlify
 import sqlite3
+import mutagen
 
 
 class Storage(object):
 
-    def __init__(self, path):
-        self.conn = sqlite3.connect(path)
+    def __init__(self, db_path):
+        self.conn = sqlite3.connect(db_path)
 
 
     def close(self):
@@ -32,7 +36,7 @@ class Storage(object):
         it = c.execute('select id from auth where password = ? and key is null', (password,))
         try:
             (id,) = next(it)
-            key = hexlify(urandom(8)).decode('ascii')
+            key = hexlify(os.urandom(8)).decode('ascii')
             c.execute('update auth set key = ? where id = ?', (key, id))
             self.conn.commit()
             return key
@@ -51,15 +55,45 @@ class Storage(object):
 
 
     def search_albums(self, regex):
-        pass
+        r = re.compile(regex, re.IGNORECASE)
+        albums = []
+        for id, title, artist in self.conn.cursor().execute('select * from album'):
+            if r.search(title) or r.search(artist):
+                albums.append((id, title, artist))
+        return albums
 
 
     def get_files(self, album_id):
-        pass
+        files = []
+        for path, in self.conn.cursor().execute('select path from file where album = ?', (album_id,)):
+            files.append(path)
+        return files
+
+
+    def get_album_desc(self, album_id):
+        title, artist =  next(self.conn.cursor().execute('select title, artist from album where id = ?', (album_id,)))
+        return '[{}] {}'.format(artist, title)
 
 
     def recache(self, music_root):
-        c = self.conn.cursor
-        c.execute('delete from albums')
-        pass
+        c = self.conn.cursor()
+        c.execute('delete from album')
+        c.execute('delete from file')
+        done = 0
+        for root, dirs, files in os.walk(music_root):
+            for f in files:
+                try:
+                    fname = os.path.join(root, f)
+                    tags = mutagen.File(fname, easy=True)
+                    album = tags['album'][0]
+                    artist = tags['artist'][0]
+                except Exception as e:
+                    continue
+                try:
+                    id, = next(c.execute('select id from album where title = ? and artist = ?', (album, artist)))
+                except StopIteration:
+                    c.execute('insert into album (title, artist) values (?, ?)', (album, artist))
+                    id = c.lastrowid
+                    sys.stderr.write(str(id) + ': ' + album + ' - ' + artist + '\n')
+                c.execute('insert into file (album, path) values (?, ?)', (id, fname))
         self.conn.commit()
