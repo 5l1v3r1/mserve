@@ -5,4 +5,5 @@ with import <nixpkgs> {}; stdenv.mkDerivation {
     python3Packages.mutagen
     python3Packages.flask
   ];
+  shellHook = "export PYTHONPATH=.:$PYTHONPATH";
 }

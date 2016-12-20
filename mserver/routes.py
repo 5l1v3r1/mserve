@@ -48,6 +48,8 @@ def download(album_id):
 
 
 def check_admin_auth():
+    if 'admin_nonce' not in request.cookies or 'admin_auth' not in request.cookies:
+        return False
     nonce = request.cookies['admin_nonce'].encode('ascii')
     m = sha256()
     m.update(nonce)
@@ -57,9 +59,9 @@ def check_admin_auth():
 
 
 @app.route('/admin', methods=['GET', 'POST'])
-def auth_admin():
+def admin():
     if check_admin_auth():
-        return redirect('/ls_auth')
+        return render_template('admin_console.jinja2')
     if request.method == 'GET':
         return render_template('auth_admin.jinja2')
     if request.form['password'] != app.config['ADMIN_PASSWORD']:
@@ -69,7 +71,7 @@ def auth_admin():
     m.update(nonce)
     m.update(app.config['SUPER_SECRET'].encode('ascii'))
     cookie = hexlify(m.digest())
-    response = make_response(redirect('/ls_auth'))
+    response = make_response(render_template('admin_console.jinja2'))
     response.set_cookie('admin_nonce', nonce)
     response.set_cookie('admin_auth', cookie)
     return response
