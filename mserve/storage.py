@@ -1,5 +1,5 @@
-from mserver.auth import Auth
-from mserver.music import Music
+from mserve.auth import Auth
+from mserve.music import Music
 from config import config
 
 import sqlite3

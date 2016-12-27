@@ -59,7 +59,7 @@ def lookup_info(release):
 
 def cache_releases(conn, nthreads):
 
-    musicbrainzngs.set_useragent('mserver', '0.1.0.0')
+    musicbrainzngs.set_useragent('mserve', '0.1.0.0')
     c = conn.cursor()
     todo = Queue()
     done = Queue()

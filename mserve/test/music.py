@@ -1,4 +1,4 @@
-from mserver.storage import Storage
+from mserve.storage import Storage
 
 st = Storage()
 

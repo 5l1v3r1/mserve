@@ -1,6 +1,6 @@
 import os.path
 from flask import Flask, g
-from mserver.storage import Storage
+from mserve.storage import Storage
 from config import config
 
 

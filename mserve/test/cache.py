@@ -1,4 +1,4 @@
-from mserver.cache import *
+from mserve.cache import *
 from config import config
 import sqlite3
 

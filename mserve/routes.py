@@ -7,7 +7,7 @@ import os.path
 from binascii import hexlify
 from hashlib import sha256
 
-from mserver import app, get_st
+from mserve import app, get_st
 
 
 def check_auth():
