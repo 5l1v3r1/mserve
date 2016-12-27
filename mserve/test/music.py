@@ -1,6 +1,7 @@
 from mserve.storage import Storage
+from config import config
 
-st = Storage()
+st = Storage(config['DATABASE'])
 
-for release, title, year, artists in st.music.query(title_re='lo'):
-    print(title, artists)
+for release, artist, title, year, genre in st.music.query(title_re='lo'):
+    print(' | '.join((artist, title, str(year), genre)))
