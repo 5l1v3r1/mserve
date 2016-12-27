@@ -64,6 +64,8 @@ class Music(object):
         q = ' where '.join(filter(None, ['select * from releases', extra]))
         params = tuple(filter(None, [year_from, year_to]))
 
+        results = []
+
         for r, title, year in self.conn.execute(q, params):
 
             release = UUID(bytes=r)
@@ -94,4 +96,7 @@ class Music(object):
                 if not match:
                     continue
 
-            yield release, ' + '.join(artists), title, year, '/'.join(genres)
+            results.append((release, ' + '.join(artists), title, year, '/'.join(genres)))
+
+        results.sort(key=lambda x: (x[1].upper(), x[2].upper(), x[3]))
+        return results
