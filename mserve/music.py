@@ -72,18 +72,7 @@ class Music(object):
                 if not re.search(title_re, title, re.I):
                     continue
 
-            if genre_re is not None:
-                gr = re.compile(genre_re, re.I)
-                match = False
-                for genre in self.genres_of(release):
-                    if gr.search(genre):
-                        match = True
-                        break
-                if not match:
-                    continue
-
             artists = self.artists_of(release)
-
             if artist_re is not None:
                 ar = re.compile(artist_re, re.I)
                 match = False
@@ -94,4 +83,15 @@ class Music(object):
                 if not match:
                     continue
 
-            yield release, title, year, artists
+            genres = self.genres_of(release)
+            if genre_re is not None:
+                gr = re.compile(genre_re, re.I)
+                match = False
+                for genre in genres:
+                    if gr.search(genre):
+                        match = True
+                        break
+                if not match:
+                    continue
+
+            yield release, ' + '.join(artists), title, year, '/'.join(genres)

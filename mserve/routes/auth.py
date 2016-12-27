@@ -1,26 +1,11 @@
-from flask import Flask, request, redirect, render_template, make_response, send_file, after_this_request
+from flask import request, redirect, render_template, make_response
 
-from os import urandom
+import os
 import os.path
 from binascii import hexlify
-from uuid import UUID
 
 from mserve import app, get_st
-from mserve.zip import do_zip
-
-
-def check_auth():
-    return 'auth' in request.cookies and get_st().auth.check_auth(request.cookies['auth'])
-
-
-def with_auth(f):
-    def g(*args, **kwargs):
-        # if check_auth():
-        if True:
-            return f(*args, **kwargs)
-        else:
-            return redirect('/auth')
-    return g
+from mserve.routes.common import check_auth
 
 
 @app.route('/auth', methods=['GET', 'POST'])
@@ -42,31 +27,6 @@ def auth():
             return response
 
 
-@app.route('/')
-@with_auth
-def root():
-    return 'foo'
-
-
-@with_auth
-@app.route('/download/<release>')
-def download(release):
-
-    r = UUID(release)
-    m = get_st().music
-    desc = m.describe(r)
-    out_path = os.path.join(app.config['ZIP_DIR'], hexlify(os.urandom(16)).decode('ascii'))
-    in_paths = m.files_of(r)
-    z = do_zip(in_paths, out_path, desc)
-
-    @after_this_request
-    def cleanup(response):
-        os.remove(out_path)
-        return response
-
-    return send_file(out_path, attachment_filename=(desc + '.zip'), as_attachment=True)
-
-
 def check_admin_auth():
     if 'admin_nonce' not in request.cookies or 'admin_auth' not in request.cookies:
         return False
@@ -86,7 +46,7 @@ def admin():
         return render_template('auth_admin.jinja2')
     if request.form['password'] != app.config['ADMIN_PASSWORD']:
         return render_template('auth_admin.jinja2', msg='nope. try again.')
-    nonce = hexlify(urandom(16))
+    nonce = hexlify(os.urandom(16))
     m = sha256()
     m.update(nonce)
     m.update(app.config['SUPER_SECRET'].encode('ascii'))
