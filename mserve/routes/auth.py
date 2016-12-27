@@ -20,7 +20,7 @@ def auth():
         password = request.form['password']
         key = st.auth.redeem_auth(password)
         if key is None:
-            return render_template('auth.jinja2', msg='nope, try again.')
+            return render_template('auth.jinja2', invalid=True)
         else:
             response = make_response(redirect('/'))
             response.set_cookie('auth', key)
