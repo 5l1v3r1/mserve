@@ -1,4 +1,5 @@
 import re
+from uuid import UUID
 
 class Music(object):
 
@@ -8,7 +9,7 @@ class Music(object):
 
     def has(self, release):
         try:
-            next(self.conn.cursor().execute('select 1 from releases where id = ?', (release,)))
+            next(self.conn.cursor().execute('select 1 from releases where id = ?', (release.bytes,)))
             return True
         except StopIteration:
             return False
@@ -18,7 +19,7 @@ class Music(object):
         return [
             path
             for path,
-            in self.conn.cursor().execute('select path from file where release = ?', (release,))
+            in self.conn.cursor().execute('select path from files where release = ?', (release.bytes,))
             ]
 
 
@@ -26,7 +27,7 @@ class Music(object):
         return [
             artist
             for artist,
-            in self.conn.cursor().execute('select artist from credits where release = ?', (release,))
+            in self.conn.cursor().execute('select artist from credits where release = ?', (release.bytes,))
             ]
 
 
@@ -34,7 +35,7 @@ class Music(object):
         return [
             genre
             for genre,
-            in self.conn.cursor().execute('select genre from genres where release = ?', (release,))
+            in self.conn.cursor().execute('select genre from genres where release = ?', (release.bytes,))
             ]
 
 
@@ -43,9 +44,9 @@ class Music(object):
 
 
     def describe(self, release):
-        title, year = next(self.conn.cursor().execute('select title, year from release where id = ?', (release,)))
+        title, year = next(self.conn.cursor().execute('select title, year from releases where id = ?', (release.bytes,)))
         artists = self.artists_of(release)
-        return fmt_desc(title, year, artists)
+        return self.fmt_desc(title, year, artists)
 
 
     def query(self, title_re=None, year_from=None, year_to=None, artist_re=None, genre_re=None):
@@ -63,7 +64,9 @@ class Music(object):
         q = ' where '.join(filter(None, ['select * from releases', extra]))
         params = tuple(filter(None, [year_from, year_to]))
 
-        for release, title, year in self.conn.execute(q, params):
+        for r, title, year in self.conn.execute(q, params):
+
+            release = UUID(bytes=r)
 
             if title_re is not None:
                 if not re.search(title_re, title, re.I):

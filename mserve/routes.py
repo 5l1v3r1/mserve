@@ -1,23 +1,22 @@
 from flask import Flask, request, redirect, render_template, make_response, send_file, after_this_request
 
-import tempfile
-import zipfile
 from os import urandom
 import os.path
 from binascii import hexlify
-from hashlib import sha256
+from uuid import UUID
 
 from mserve import app, get_st
+from mserve.zip import do_zip
 
 
 def check_auth():
-    return 'auth' in request.cookies and get_st().check_auth(request.cookies['auth'])
+    return 'auth' in request.cookies and get_st().auth.check_auth(request.cookies['auth'])
 
 
 def with_auth(f):
     def g(*args, **kwargs):
-        if check_auth():
-        # if True:
+        # if check_auth():
+        if True:
             return f(*args, **kwargs)
         else:
             return redirect('/auth')
@@ -34,7 +33,7 @@ def auth():
             return render_template('auth.jinja2')
     elif request.method == 'POST':
         password = request.form['password']
-        key = st.redeem_auth(password)
+        key = st.auth.redeem_auth(password)
         if key is None:
             return render_template('auth.jinja2', msg='nope, try again.')
         else:
@@ -50,25 +49,22 @@ def root():
 
 
 @with_auth
-@app.route('/download/<int:album_id>', methods=['GET'])
-def download(album_id):
-    st = get_st()
-    name = st.get_album_desc(album_id)
-    tmp = name + ' ' + hexlify(urandom(4)).decode('ascii') + '.zip'
-    fname = os.path.join(app.config['ZIP_DIR'], tmp)
-    zip = zipfile.ZipFile(fname, 'w')
-    for path in st.get_files(album_id):
-        # last = hexlify(urandom(2)).decode('ascii')
-        # zip.write(path, arcname=os.path.join(tmp, os.path.basename(last + ' ' + path)))
-        zip.write(path)
-    zip.close()
+@app.route('/download/<release>')
+def download(release):
+
+    r = UUID(release)
+    m = get_st().music
+    desc = m.describe(r)
+    out_path = os.path.join(app.config['ZIP_DIR'], hexlify(os.urandom(16)).decode('ascii'))
+    in_paths = m.files_of(r)
+    z = do_zip(in_paths, out_path, desc)
 
     @after_this_request
     def cleanup(response):
-        os.remove(fname)
+        os.remove(out_path)
         return response
 
-    return send_file(fname, attachment_filename=tmp, as_attachment=True)
+    return send_file(out_path, attachment_filename=(desc + '.zip'), as_attachment=True)
 
 
 def check_admin_auth():
