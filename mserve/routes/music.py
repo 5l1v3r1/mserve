@@ -1,23 +1,57 @@
-from flask import request, render_template, send_file, after_this_request, jsonify
+from flask import request, redirect, render_template, send_file, after_this_request, jsonify
 
 import os
 import os.path
 from binascii import hexlify
+from functools import wraps
 from uuid import UUID
 
 from mserve import app, get_st
 from mserve.zip import do_zip
-from mserve.routes.common import with_auth
 
 
-@with_auth
+def check_auth():
+    return 'auth' in request.cookies and get_st().auth.check_auth(request.cookies['auth'])
+
+
+def with_auth(f):
+    @wraps(f)
+    def g(*args, **kwargs):
+        if check_auth():
+        # if True:
+            return f(*args, **kwargs)
+        else:
+            return redirect('/auth')
+    return g
+
+
+@app.route('/auth', methods=['GET', 'POST'])
+def auth():
+    st = get_st()
+    if request.method == 'GET':
+        if check_auth():
+            return redirect('/')
+        else:
+            return render_template('auth.jinja2')
+    elif request.method == 'POST':
+        password = request.form['password']
+        key = st.auth.redeem_auth(password)
+        if key is None:
+            return render_template('auth.jinja2', invalid=True)
+        else:
+            response = make_response(redirect('/'))
+            response.set_cookie('auth', key)
+            return response
+
+
 @app.route('/')
+@with_auth
 def home():
     return render_template('search.jinja2')
 
 
-@with_auth
 @app.route('/search')
+@with_auth
 def search():
 
     title_re = request.args.get('title') or None
@@ -40,8 +74,8 @@ def search():
     return jsonify(results=results)
 
 
-@with_auth
 @app.route('/download/<release>')
+@with_auth
 def download(release):
 
     r = UUID(release)
