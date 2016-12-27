@@ -15,11 +15,7 @@ import musicbrainzngs
 def cache_files(conn, music_root):
     c = conn.cursor()
     c.execute('delete from files')
-    go = 100
     for root, dirs, files in os.walk(music_root):
-        go -= 1
-        if not go:
-            break
         for f in files:
             try:
                 fname = os.path.join(root, f)
@@ -36,7 +32,7 @@ def cache_files(conn, music_root):
                     next(c.execute('select 1 from files where track = ?', (track.bytes,)))
                 except StopIteration:
                     c.execute('insert into files (track, release, path) values (?, ?, ?)', (track.bytes, release.bytes, fname))
-                    sys.stderr.write(fname + '\n')
+                    print(fname)
                 for genre in genres:
                     try:
                         next(c.execute('select 1 from genres where release = ? and genre = ?', (release.bytes, genre)))
@@ -52,8 +48,10 @@ def lookup_info(release):
     year = int(info['date'][:4]) if 'date' in info else None
     artists = []
     for a in info['artist-credit']:
-        if a != ' / ' and 'name' in a['artist']:
+        if isinstance(a, dict) and 'name' in a['artist']:
             artists.append(a['artist']['name'])
+        else:
+            print(a)
     return title, year, artists
 
 
@@ -93,4 +91,5 @@ def cache_releases(conn, nthreads):
             c.execute('insert into releases (id, title, year) values (?, ?, ?)', (release.bytes, title, year))
             for artist in artists:
                 c.execute('insert into credits (release, artist) values (?, ?)', (release.bytes, artist))
+        conn.commit()
         time.sleep(0)
