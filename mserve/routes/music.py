@@ -1,4 +1,4 @@
-from flask import request, render_template, send_file, after_this_request
+from flask import request, render_template, send_file, after_this_request, jsonify
 
 import os
 import os.path
@@ -10,12 +10,15 @@ from mserve.zip import do_zip
 from mserve.routes.common import with_auth
 
 
-@app.route('/')
 @with_auth
-def search():
+@app.route('/')
+def home():
+    return render_template('search.jinja2')
 
-    if len(request.args) == 0:
-        return render_template('search.jinja2')
+
+@with_auth
+@app.route('/search')
+def search():
 
     title_re = request.args.get('title') or None
     artist_re = request.args.get('artist') or None
@@ -34,7 +37,7 @@ def search():
             year_to=year_to,
             )
 
-    return render_template('search.jinja2', results=results)
+    return jsonify(results=results)
 
 
 @with_auth

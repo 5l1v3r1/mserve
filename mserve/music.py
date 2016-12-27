@@ -96,7 +96,13 @@ class Music(object):
                 if not match:
                     continue
 
-            results.append((release, ' + '.join(artists), title, year, '/'.join(genres)))
+            results.append({
+                'id': release,
+                'artist': ' + '.join(artists),
+                'title': title,
+                'year': year,
+                'genre': '/'.join(genres),
+                })
 
-        results.sort(key=lambda x: (x[1].upper(), x[2].upper(), x[3]))
+        results.sort(key=lambda x: (x['artist'].upper(), x['title'].upper(), x['year']))
         return results
