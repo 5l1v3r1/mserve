@@ -1,0 +1,4 @@
+/search?regex={}
+/browse/artist?regex={}&genre={}&startyear={}&endyear={}
+/browse/album?regex={}&genre={}&startyear={}&endyear={}
+/download/<int:album_id>

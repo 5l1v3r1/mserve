@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>mserve</title>
+    </head>
+    <body>
+        <table>
+            <thead>
+                <tr>
+                    <td>artist</td>
+                </tr>
+            </thead>
+            <tbody>
+                {% for id, name in artists %}
+                    <tr>
+                        <td><a href="/browse/artist/{{ id }}">{{ name }}</a></td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </body>
+</html>

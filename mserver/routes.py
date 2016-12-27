@@ -10,11 +10,21 @@ from hashlib import sha256
 from mserver import app, get_st
 
 
+def with_auth(f):
+    def g(*args, **kwargs):
+        if True:
+        # if 'auth' in request.cookies and get_st().check_auth(request.cookies['auth']):
+            return f(*args, **kwargs)
+        else:
+            return redirect('/auth')
+    return g
+
+
 @app.route('/', methods=['GET', 'POST'])
 def prompt_auth():
     st = get_st()
     if request.method == 'GET':
-        if 'auth' in request.cookies and st.check_auth(request.cookies['auth']):
+        if auth():
             return redirect("/search")
         else:
             return render_template('prompt_auth.jinja2')
@@ -29,24 +39,48 @@ def prompt_auth():
             return response
 
 
-@app.route('/search', methods=['GET', 'POST'])
+@app.route('/search')
+@with_auth
 def search():
     st = get_st()
-    if 'auth' not in request.cookies or not st.check_auth(request.cookies['auth']):
-        return redirect("/")
-    if request.method == 'GET':
-        return render_template('search.jinja2')
-    if request.method == 'POST':
-        regex = request.form['regex']
-        albums = st.search_albums(regex)
-        return render_template('search_results.jinja2', albums=albums)
+    if 'regex' in request.args:
+        regex = request.args['regex']
+        albums = st.regex(regex)
+    else:
+        albums = None
+    return render_template('search.jinja2', albums=albums)
+
+
+@app.route('/browse/artists')
+@with_auth
+def browse_artists():
+    if 'genre' in request.args:
+        genre = request.args['genre']
+        artists = st.alpha_artists(letter)
+    return render_template('browse_artists.jinja2', letter=letter, artists=artists)
+
+
+@app.route('/browse/artists/letter/<letter>')
+@with_auth
+def browse_artists_letter(letter):
+    st = get_st()
+    if len(letter) == 1 and letter.isalpha() and letter.isupper():
+        artists = st.alpha_artists(letter)
+    return render_template('browse_artists.jinja2', letter=letter, artists=artists)
+
+
+@app.route('/browse/artist/<int:artist_id>')
+@with_auth
+def browse_artist(artist_id):
+    st = get_st()
+    name, stuff = st.artist_stuff(artist_id)
+    return render_template('browse_artist.jinja2', name=name, stuff=stuff)
 
 
 @app.route('/download/<int:album_id>', methods=['GET'])
+@with_auth
 def download(album_id):
     st = get_st()
-    if 'auth' not in request.cookies or not st.check_auth(request.cookies['auth']):
-        return redirect("/")
     name = st.get_album_desc(album_id)
     tmp = name + ' ' + hexlify(urandom(4)).decode('ascii') + '.zip'
     fname = os.path.join(app.config['ZIP_DIR'], tmp)

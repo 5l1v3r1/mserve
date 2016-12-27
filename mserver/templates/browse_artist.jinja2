@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>mserve</title>
+    </head>
+    <body>
+        <table>
+            <thead>
+                <tr>
+                    <td>album</td>
+                </tr>
+            </thead>
+            <tbody>
+                {% for id, title in stuff %}
+                    <tr>
+                        <td><a href="/download/{{ id }}">{{ title }}</a></td>
+                    </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </body>
+</html>

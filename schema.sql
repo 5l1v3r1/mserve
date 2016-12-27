@@ -5,11 +5,17 @@ create table auth (
     key char(16)
 );
 
+drop table if exists artist;
+create table artist (
+    id integer primary key autoincrement,
+    name text not null
+);
+
 drop table if exists album;
 create table album (
     id integer primary key autoincrement,
-    title text not null,
-    artist text not null
+    artist integer not null,
+    title text not null
 );
 
 drop table if exists file;
