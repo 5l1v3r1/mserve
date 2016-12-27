@@ -2,50 +2,73 @@
 <html>
     <head>
         <title>mserve</title>
+        <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='css/bootstrap.min.css') }}">
     </head>
     <body>
-        <h1>browse</h1>
-        <form method="get">
-            <label>artist</label>
-            <input type="text" name="artist">
-            <br>
-            <label>title</label>
-            <input type="text" name="title">
-            <br>
-            <label>year from</label>
-            <input type="text" name="year_from">
-            <br>
-            <label>year to</label>
-            <input type="text" name="year_to">
-            <br>
-            <label>genre</label>
-            <input type="text" name="genre">
-            <br>
-            <input type="submit" value="go">
-        </form>
-        {% if results is defined %}
-            <h1>results</h1>
-            choose an album to download:
-            <table>
-                <thead>
-                    <tr>
-                        <td>artist</td>
-                        <td>title</td>
-                        <td>year</td>
-                        <td>(genre)</td>
-                    </tr>
-                </thead>
-                <tbody>
-                    {% for release, artist, title, year, genre in results %}
+        <div class="container">
+            <h1>Album Search</h1>
+            <hr>
+            <form class="form-horizontal" method="get">
+                <div class="form-group">
+                    <label for="artist" class="col-xs-2 control-label">Artist</label>
+                    <div class="col-xs-10">
+                        <input type="text" id="artist" class="form-control" name="artist">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="title" class="col-xs-2 control-label">Title</label>
+                    <div class="col-xs-10">
+                        <input type="text" id="title" class="form-control" name="title">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <!-- <label for="years" class="col-xs-2 control-label">Years</label> -->
+                    <label class="col-xs-2 control-label">Years</label>
+                    <label for="year_from" class="col-xs-1 control-label">from</label>
+                    <div class="col-xs-3">
+                        <input type="text" id="year_from" class="form-control" name="year_from">
+                    </div>
+                    <label for="year_to" class="col-xs-1 control-label">through</label>
+                    <div class="col-xs-3">
+                        <input type="text" id="year_to" class="form-control" name="year_to">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <label for="genre" class="col-xs-2 control-label">Genre</label>
+                    <div class="col-xs-10">
+                        <input type="text" id="genre" class="form-control" name="genre">
+                    </div>
+                </div>
+                <div class="form-group">
+                    <div class="col-xs-offset-2 col-xs-10">
+                        <button type="submit" class="btn btn-default">Search</button>
+                    </div>
+                </div>
+            </form>
+            {% if results is defined %}
+                <hr>
+                <h2>Results</h2>
+                <table class="table table-condensed table-hover table-bordered table-striped">
+                    <thead>
                         <tr>
-                            <td>{{ artist }}</td>
-                            <td><a href="/download/{{ release }}">{{ title }}</a></td>
-                            <td>{{ year }}</td>
-                            <td>{{ genre }}</td>
+                            <th>Artist</th>
+                            <th>Title <span class="glyphicon glyphicon-download-alt"></span></th>
+                            <th>Year</th>
+                            <th>Genre</th>
                         </tr>
-                    {% endfor %}
-                </tbody>
-            </table>
-        {% endif %}
+                    </thead>
+                    <tbody>
+                        {% for release, artist, title, year, genre in results %}
+                            <tr>
+                                <td>{{ artist }}</td>
+                                <td><a href="/download/{{ release }}">{{ title }}</a></td>
+                                <td>{{ year }}</td>
+                                <td>{{ genre }}</td>
+                            </tr>
+                        {% endfor %}
+                    </tbody>
+                </table>
+            {% endif %}
+        </div>
     </body>
 </html>
