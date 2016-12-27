@@ -5,16 +5,29 @@ create table auth (
     key char(16)
 );
 
-drop table if exists album;
-create table album (
+drop table if exists files;
+create table files (
     id integer primary key autoincrement,
-    title text not null,
-    artist text not null
+    track blob(16) not null,
+    release blob(16) not null,
+    path varchar not null
 );
 
-drop table if exists file;
-create table file (
-    id integer primary key autoincrement,
-    album integer not null,
-    path text not null
+drop table if exists genres;
+create table genres (
+    release blob(16) not null,
+    genre varchar not null
+);
+
+drop table if exists releases;
+create table releases (
+    id blob(16) primary key,
+    title varchar,
+    year integer
+);
+
+drop table if exists credits;
+create table credits (
+    release blob(16) not null,
+    artist varchar not null
 );

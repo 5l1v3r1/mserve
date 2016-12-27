@@ -10,43 +10,49 @@ from hashlib import sha256
 from mserver import app, get_st
 
 
-@app.route('/', methods=['GET', 'POST'])
-def prompt_auth():
+def check_auth():
+    return 'auth' in request.cookies and get_st().check_auth(request.cookies['auth'])
+
+
+def with_auth(f):
+    def g(*args, **kwargs):
+        if check_auth():
+        # if True:
+            return f(*args, **kwargs)
+        else:
+            return redirect('/auth')
+    return g
+
+
+@app.route('/auth', methods=['GET', 'POST'])
+def auth():
     st = get_st()
     if request.method == 'GET':
-        if 'auth' in request.cookies and st.check_auth(request.cookies['auth']):
-            return redirect("/search")
+        if check_auth():
+            return redirect('/')
         else:
-            return render_template('prompt_auth.jinja2')
+            return render_template('auth.jinja2')
     elif request.method == 'POST':
         password = request.form['password']
         key = st.redeem_auth(password)
         if key is None:
-            return render_template('prompt_auth.jinja2', msg='nope, try again.')
+            return render_template('auth.jinja2', msg='nope, try again.')
         else:
-            response = make_response(redirect('/search'))
+            response = make_response(redirect('/'))
             response.set_cookie('auth', key)
             return response
 
 
-@app.route('/search', methods=['GET', 'POST'])
-def search():
-    st = get_st()
-    if 'auth' not in request.cookies or not st.check_auth(request.cookies['auth']):
-        return redirect("/")
-    if request.method == 'GET':
-        return render_template('search.jinja2')
-    if request.method == 'POST':
-        regex = request.form['regex']
-        albums = st.search_albums(regex)
-        return render_template('search_results.jinja2', albums=albums)
+@app.route('/')
+@with_auth
+def root():
+    return 'foo'
 
 
+@with_auth
 @app.route('/download/<int:album_id>', methods=['GET'])
 def download(album_id):
     st = get_st()
-    if 'auth' not in request.cookies or not st.check_auth(request.cookies['auth']):
-        return redirect("/")
     name = st.get_album_desc(album_id)
     tmp = name + ' ' + hexlify(urandom(4)).decode('ascii') + '.zip'
     fname = os.path.join(app.config['ZIP_DIR'], tmp)
