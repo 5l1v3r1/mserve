@@ -12,10 +12,10 @@ from mserve.routes.common import with_auth
 
 @app.route('/')
 @with_auth
-def browse():
+def search():
 
     if len(request.args) == 0:
-        return render_template('browse.jinja2')
+        return render_template('search.jinja2')
 
     title_re = request.args.get('title') or None
     artist_re = request.args.get('artist') or None
@@ -34,7 +34,7 @@ def browse():
             year_to=year_to,
             )
 
-    return render_template('browse.jinja2', results=results)
+    return render_template('search.jinja2', results=results)
 
 
 @with_auth
