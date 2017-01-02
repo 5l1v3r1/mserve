@@ -1,21 +1,12 @@
 import os.path
-from flask import Flask, g
-from mserve.storage import Storage
-from config import config
+
+from mserve.app import app
+import mserve.routes.music
+import mserve.routes.admin
 
 
-app = Flask(__name__)
-app.config.from_object(__name__)
-app.config.update(config)
-
-
-def get_st():
-    if not hasattr(g, 'storage'):
-        g.storage = Storage(app.config['DATABASE'])
-    return g.storage
-
-
-@app.teardown_appcontext
-def close_db(error):
-    if hasattr(g, 'storage'):
-        g.storage.close()
+def in_dir(ref, fname):
+    return os.path.join(
+            os.path.dirname(os.path.realpath(ref)),
+            fname
+        )

@@ -1,0 +1,13 @@
+from mserve import app, in_dir
+
+app.config.update(
+    ADMIN_PASSWORD = 'password',
+    SUPER_SECRET = 'secret',
+    DEBUG = True,
+    MUSIC_ROOT = '~/music',
+    DATABASE = in_dir(__file__, 'db.sqlite'),
+    ZIP_DIR = in_dir(__file__, 'zip_dir'),
+    )
+
+app.run()
+

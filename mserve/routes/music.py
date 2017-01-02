@@ -6,7 +6,7 @@ from binascii import hexlify
 from functools import wraps
 from uuid import UUID
 
-from mserve import app, get_st
+from mserve.app import app, get_st
 from mserve.zip import do_zip
 
 

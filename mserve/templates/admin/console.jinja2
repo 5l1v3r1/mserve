@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>mserve - admin</title>
+    </head>
+    <body>
+        <h1>[mk_auth]</h1>
+        <form method="post" action="/admin/mk_auth">
+            enter new one time password:<br>
+            <input type="text" name="password">
+            <input type="submit" value="submit">
+        </form>
+        <h1>[ls_auth]</h1>
+        {% if auths is none %}
+            <a href="/admin?show">show</a>
+        {% else %}
+            <a href="/admin">hide</a>
+            <table>
+                <thead>
+                    <tr>
+                        <td>id</td>
+                        <td>password</td>
+                        <td>key</td>
+                        <td></td>
+                    </tr>
+                </thead>
+                <tbody>
+                    {% for id, password, key in auths %}
+                        <tr>
+                            <td>{{ id }}</td>
+                            <td>{{ password }}</td>
+                            <td>{{ key }}</td>
+                            <td><a href="/admin/rm_auth/{{ id }}">-</a></td>
+                        </tr>
+                    {% endfor %}
+                </tbody>
+            </table>
+        {% endif %}
+    </body>
+</html>
