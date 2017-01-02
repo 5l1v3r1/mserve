@@ -1,3 +1,4 @@
 main.py
 *.sqlite
+*.sqlite-journal
 zip_dir
