@@ -31,7 +31,7 @@ def with_admin_auth(f):
 
 
 @app.route('/admin/auth', methods=['GET', 'POST'])
-def admin_auth():
+def admon_auth():
     if request.method == 'GET':
         return (
             redirect('/admin')
@@ -39,7 +39,7 @@ def admin_auth():
             else render_template('admin/auth.jinja2')
             )
     if request.form.get('password') != app.config['ADMIN_PASSWORD']:
-        return render_template('admin/auth.jinja2', msg='nope. try again.')
+        return render_template('admin/auth.jinja2', invalid=True)
     nonce = hexlify(os.urandom(16))
     m = sha256()
     m.update(nonce)
@@ -51,9 +51,18 @@ def admin_auth():
     return response
 
 
+@app.route('/admin/unauth')
+@with_admin_auth
+def admin_unauth():
+    response = make_response(redirect('/admin'))
+    response.set_cookie('admin_nonce', expires=0)
+    response.set_cookie('admin_auth', expires=0)
+    return response
+
+
 @app.route('/admin')
 @with_admin_auth
-def admin():
+def admin_console():
     show = 'show' in request.args
     auths = get_st().auth.ls_auth() if 'show' in request.args else None
     return render_template('admin/console.jinja2', auths=auths)
